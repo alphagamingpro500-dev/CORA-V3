@@ -1,0 +1,46 @@
+name: Construire APK CORA V3
+
+on:
+workflow_dispatch:
+push:
+paths:
+- 'CORA_V3_Android_Source.zip'
+- '.github/workflows/android-build.yml'
+
+jobs:
+build:
+runs-on: ubuntu-latest
+steps:
+- name: Recuperer le depot
+uses: actions/checkout@v4
+
+  - name: Installer Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Installer Android SDK
+    uses: android-actions/setup-android@v3
+
+  - name: Installer les outils Android
+    run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+  - name: Installer Gradle
+    uses: gradle/actions/setup-gradle@v4
+    with:
+      gradle-version: '8.9'
+
+  - name: Extraire le projet
+    run: |
+      mkdir cora-source
+      unzip CORA_V3_Android_Source.zip -d cora-source
+
+  - name: Construire l'APK
+    run: gradle -p cora-source assembleDebug
+
+  - name: Publier l'APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: CORA-V3-APK
+      path: cora-source/app/build/outputs/apk/debug/app-debug.apk
